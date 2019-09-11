@@ -1,0 +1,139 @@
+
+<Html>
+<head>
+    <title>AJAX COURSE</title>
+    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<!--    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+ <h2 align="center" >PHP with AJAX and jquery</h2>
+ <!-- Button trigger modal -->
+ <br>
+ <button type="button" class="btn btn-primary" id="addNew" data-toggle="modal" data-target="#exampleModal">
+     Add Data
+ </button>
+
+ <br>
+ <!-- Modal -->
+ <br>
+ <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+     <div class="modal-dialog" role="document">
+         <div class="modal-content">
+             <form method="post" id="user_form">
+                 <div class="modal-header">
+                     <h5 class="modal-title" id="exampleModalLabel">Add details</h5>
+                 </div>
+                 <div class="modal-body">
+                     <div class="form-group">
+                         <label>Enter First Name</label>
+                         <input type="text" name="first_name" id="first_name" class="form-control" required/>
+                         <span id="error_first_name" class="text-danger"></span>
+                     </div>
+                     <div class="form-group">
+                         <label>Enter Last Name</label>
+                         <input type="text" name="last_name" id="last_name" class="form-control" required/>
+                         <span id="error_last_name" class="text-danger"></span>
+                     </div>
+                     <div class="form-group">
+                         <input type="hidden" name="hidden_id" id="hidden_id"/>
+                         <input type="hidden" id="action" name="action" value="insert"/>
+                     </div>
+                 </div>
+                 <div class="modal-footer">
+                     <input type="submit" name="form_action" id="form_action" class="btn btn-primary"  value="Insert"/>
+                 </div>
+             </form>
+         </div>
+     </div>
+ </div>
+
+
+    <div id="user_data" class="table-responsive">
+
+    </div>
+    <br/>
+    <div id="action_alert" title="Action">
+
+    </div>
+
+</body>
+</Html>
+
+
+    <script>
+    $(document).ready(function() {
+        load_data();
+
+        function load_data() {
+            $.ajax({
+                url: "fetch.php",
+                type: "POST",
+                success: function (data) {
+                    $('#user_data').html(data);
+                }
+            })
+        }
+
+        $('#user_form').on('submit', function (event) {
+            event.preventDefault();
+            var form_data = $(this).serialize();
+            $.ajax({
+                url : "action.php",
+                method : "POST",
+                data : form_data,
+                success : function (data) {
+                    $('#exampleModal').modal('hide');
+                    // $('#action_alert').html(data);
+                    // $('#action_alert').dialog('open');
+                    load_data();
+                }
+            });
+
+        });
+        $(document).on('click','.edit',function(){
+            var id = $(this).attr("id");
+            var action = 'fetch_single';
+            $.ajax({
+                url : "action.php",
+                method : "POST",
+                data : {id:id, action:action}, //Which data to write
+                dataType : "json",
+                success : function(data){
+                    $('#first_name').val(data.first_name);
+                    $('#last_name').val(data.last_name);
+                    $('#exampleModal').attr('title','Edit Data'); //Change modal title
+                    $('#action').val('update');
+                    $('#hidden_id').val(data.id);
+                    $('#form_action').val('update');
+                    $('#exampleModal').modal('show');
+                }
+            });
+        });
+        $(document).on('click','.delete',function(){
+            if(confirm('Are you sure?')){
+                var id = $(this).attr("id");
+                var action = 'delete';
+                $.ajax({
+                    url : "action.php",
+                    method : "POST",
+                    data : {id:id, action:action}, //Which data to write
+                    dataType : "json",
+                    success : function(data){
+                        load_data();
+                        $('#action').val('delete');
+                        $('#hidden_id').val(data.id);
+                        $('#form_action').val('delete');
+                    }
+                });
+            }else {
+                return false;
+            }
+        });
+    });
+    </script>
+
